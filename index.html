@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teste API de E-mail</title>
+
+<style>
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    max-width: 700px;
+    margin:40px auto;
+}
+
+label{
+    display:block;
+    margin-top:15px;
+    font-weight:bold;
+}
+
+input, textarea{
+    width:100%;
+    padding:8px;
+    box-sizing:border-box;
+}
+
+button{
+    margin-top:20px;
+    padding:10px 20px;
+    cursor:pointer;
+}
+
+#resultado{
+    margin-top:20px;
+    padding:15px;
+    background:#eee;
+    white-space:pre-wrap;
+}
+</style>
+
+</head>
+<body>
+
+<h1>Teste da API de E-mail</h1>
+
+<form id="form">
+
+    <label>Equipamento</label>
+    <input
+        type="text"
+        id="nome"
+        value="Módulo UPS"
+        required>
+
+    <label>Serial</label>
+    <input
+        type="text"
+        id="serial"
+        value="UP-0001"
+        required>
+
+    <label>Firmware</label>
+    <input
+        type="text"
+        id="firmware"
+        value="1.0.0">
+
+    <label>Detalhe</label>
+    <textarea
+        id="detalhe"
+        rows="4"
+        required>Falha durante teste.</textarea>
+
+    <label>Arquivo ZIP</label>
+    <input
+        type="file"
+        id="arquivo"
+        accept=".zip"
+        required>
+    
+    <label>API Key</label>
+    <input 
+        type="password" 
+        id="apiKey"
+        required>
+
+    <button id="btnEnviar" type="submit">
+        Enviar
+    </button>
+
+</form>
+
+<pre id="resultado"></pre>
+
+<script>
+
+
+const resultado = document.getElementById("resultado");
+const btnEnviar = document.getElementById("btnEnviar");
+
+function arquivoParaBase64(file){
+
+    return new Promise((resolve,reject)=>{
+
+        const reader = new FileReader();
+
+        reader.onload = ()=>{
+
+            // remove o cabeçalho:
+            // data:application/zip;base64,
+            const base64 = reader.result.split(",")[1];
+
+            resolve(base64);
+
+        };
+
+        reader.onerror = reject;
+
+        reader.readAsDataURL(file);
+
+    });
+
+}
+
+document
+.getElementById("form")
+.addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const arquivo = document
+        .getElementById("arquivo")
+        .files[0];
+
+    if(!arquivo){
+
+        alert("Selecione um arquivo ZIP.");
+
+        return;
+
+    }
+
+    btnEnviar.disabled = true;
+    btnEnviar.textContent = "Enviando...";
+
+    resultado.style.color = "black";
+    resultado.textContent = "Preparando arquivo...";
+
+    const zipContent = await arquivoParaBase64(arquivo);
+
+    resultado.textContent = "Enviando dados...";
+
+    const body = {
+
+        nome: document.getElementById("nome").value,
+        serial: document.getElementById("serial").value,
+        firmware: document.getElementById("firmware").value,
+        detalhe: document.getElementById("detalhe").value,
+
+        zipFileName: arquivo.name,
+        zipContent: zipContent
+
+    };
+
+    try {
+
+        const resposta = await fetch("http://localhost:3000/api/send", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json",
+                "x-api-key": document.getElementById("apiKey").value
+            },
+
+            body: JSON.stringify(body)
+
+        });
+
+        const json = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(json.error || "Erro desconhecido.");
+        }
+
+        resultado.style.color = "green";
+        resultado.textContent =
+            "E-mail enviado com sucesso!\n\n" +
+            JSON.stringify(json, null, 4);
+
+    }
+    catch (err) {
+
+        resultado.style.color = "red";
+        resultado.textContent =
+            "Erro ao enviar:\n\n" + err.message;
+
+    }
+    finally {
+
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = "Enviar";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
