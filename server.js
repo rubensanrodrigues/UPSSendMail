@@ -22,7 +22,7 @@ const server = http.createServer(async (req, res) => {
 
     if (req.url === "/" || req.url === "/index.html") {
 
-        const html = fs.readFileSync("./index.html");
+        const html = fs.readFileSync("./public/index.html");
 
         res.setHeader("Content-Type", "text/html");
 
