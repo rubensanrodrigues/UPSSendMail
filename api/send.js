@@ -51,12 +51,12 @@ export default async function handler(req, res) {
         });
 
         await transporter.sendMail({
-            from: `"Monitor de Nobreak" <${process.env.EMAIL_USER}>`,
+            from: `"Monitor UPS" <${process.env.EMAIL_USER}>`,
             to: process.env.EMAIL_USER,
-            subject: `🚨 Falha detectada - ${serial}`,
+            subject: `Dados recebidos do UPS - ${serial}`,
 
             html: `
-                <h2>Falha detectada</h2>
+                <h2>Dados recebidos do UPS</h2>
 
                 <table border="1" cellpadding="5" cellspacing="0">
                     <tr>
