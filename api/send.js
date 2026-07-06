@@ -2,8 +2,6 @@ import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
 
-    console.log(`[REQ] Recebida requisição de ${serial}`);
-
     if (req.method !== "POST") {
         return res.status(405).json({
             error: "Método não permitido"
@@ -37,6 +35,8 @@ export default async function handler(req, res) {
                 error: "Dados incompletos."
             });
         }
+
+        console.log(`[REQ] Recebida requisição de ${serial}`);
 
         console.log("EMAIL_USER:", process.env.EMAIL_USER);
         console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
